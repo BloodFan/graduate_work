@@ -1,0 +1,41 @@
+# Список зависимостей был скопирован из auth_app
+fastapi==0.115.0
+aiohttp==3.10.10
+
+psycopg[binary]==3.1.18
+psycopg_pool==3.2.3
+SQLAlchemy==2.0.36 #  db
+alembic==1.14.0 # миграции
+asyncpg==0.30.0
+redis==5.1.0
+Jinja2==3.1.4 # шаблоны, пусть лучше будет обьявлен явно
+# async-fastapi-jwt-auth==0.6.6 # jwt
+aiosmtplib==3.0.2 # smtp
+# python-slugify
+Celery==5.3.6
+dramatiq[rabbitmq,async]>=1.14 # асинхронный воркер
+async-dramatiq==0.1.8
+
+itsdangerous==2.2.0 # encode/decode
+Werkzeug==3.0.4 # checkout phone
+pydantic==2.9.2 # входит в fastapi, но пусть лучше будет обьявлен явно
+pydantic[email] # validate email
+pydantic-settings==2.5.2 # не входит в fastapi
+
+# authlib==1.3.2 # OAuht 2.0
+starlette==0.38.6 # OAuht 2.0 sessions
+cryptography==43.0.0 # шифрование тел номера
+orjson==3.10.7
+
+# opentelemetry-api==1.28.2  # jaeger
+# opentelemetry-sdk==1.28.2  # jaeger
+# opentelemetry-instrumentation-fastapi==0.49b2  # jaeger
+# opentelemetry-exporter-jaeger==1.21.0  # jaeger
+
+# fastapi-limiter==0.1.6  # ограничение кол-ва запросов api
+# python-logstash==0.4.8 # logstash
+
+# hawk-python-sdk==3.5.2 # logs
+
+gunicorn==20.1.0
+uvicorn[standard]~=0.22

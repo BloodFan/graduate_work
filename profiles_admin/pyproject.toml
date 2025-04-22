@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=64.0.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+norecursedirs = [".git ", "node_modules", "venv"]
+addopts = "--tb=short --nomigrations -s"
+python_files = "*test*.py"
+python_classes = "*Test*"
+DJANGO_SETTINGS_MODULE = "example.settings_dev"
+log_cli = "true"
+log_cli_level = "info"
+
+[tool.black]
+line-length = 79
+extend-exclude = "migrations"
+skip-string-normalization = true

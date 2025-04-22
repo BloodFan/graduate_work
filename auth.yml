@@ -1,0 +1,122 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+      RABBITMQ_DEFAULT_VHOST: /
+    networks:
+      - union_network
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "node_health_check"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  auth_app:
+    build:
+      context: .
+      dockerfile: docker/dev/auth_app/Dockerfile
+    environment:
+      - PYTHONPATH=/opt:/opt/auth_app
+    volumes:
+      - ./auth_app/:/opt/auth_app/ # для тестрирования и разработки
+      - ./tmp/logs/nginx/:/var/log/nginx/
+      - ./tmp/logs/auth_app/:/var/log/auth_app/
+      - redis_socket:/redis_socket
+    ports:
+      - "8080:80"
+    env_file:
+      - docker/dev/env/.conn.env
+      - docker/dev/env/.env
+      - docker/dev/env/.gunicorn.env
+      - docker/dev/env/.smtp.env
+    depends_on:
+      auth_db:
+        condition: service_healthy
+        restart: true
+      redis:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - union_network
+
+  auth_app_worker:
+    build:
+      context: .
+      dockerfile: docker/dev/auth_app/Dockerfile
+    entrypoint: ""
+    command: dramatiq auth_app.src.tasks --queues user_profiles --processes 2 --threads 4
+    volumes:
+      - ./auth_app/:/opt/auth_app/
+      - ./tmp/logs/nginx/:/var/log/nginx/
+      - ./tmp/logs/auth_app/:/var/log/auth_app/
+      - redis_socket:/redis_socket
+    environment:
+      PYTHONPATH: /opt:/opt/auth_app
+      DRAMATIQ_BROKER_URL: amqp://user:password@rabbitmq:5672/%2F
+    env_file:
+      - docker/dev/env/.conn.env
+      - docker/dev/env/.env
+      - docker/dev/env/.gunicorn.env
+      - docker/dev/env/.smtp.env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      auth_db:
+        condition: service_healthy
+    networks:
+      - union_network
+
+  auth_db:
+    image: postgres:15.1-alpine
+    restart: unless-stopped
+    volumes:
+      - auth_data:/var/lib/postgresql/data/
+    env_file:
+      - docker/dev/env/.conn.env
+    networks:
+      - union_network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mailhog:
+    image: mailhog/mailhog
+    entrypoint: ["/bin/sh", "-c", "MailHog &>/dev/null"]
+    ports:
+      - "1025:1025" # smtp server
+      - "8025:8025" # web ui. http://localhost:8025/
+    restart: unless-stopped
+    volumes:
+      - mailbox_data:/maildir
+    networks:
+      - union_network
+    logging:
+      driver: "none"
+
+  redis:
+    image: redis:7.4.0-alpine
+    restart: always
+    command: ["/var/lib/redis/redis.conf"]
+    volumes:
+      - ./docker/dev/redis/redis.conf:/var/lib/redis/redis.conf
+      - redis_data:/data
+      - redis_socket:/redis_socket
+    networks:
+      - union_network
+
+volumes:
+  redis_data:
+  redis_socket:
+  auth_data:
+  mailbox_data:
+
+networks:
+  union_network:
+    driver: bridge
