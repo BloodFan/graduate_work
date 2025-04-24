@@ -1,18 +1,17 @@
-import logging
 from http import HTTPStatus
-from logging import config as logging_config
 from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
 
-from profiles_app.src.core.logger import LOGGING
 from profiles_app.src.schemas.entity import (
+    CreateProfileResponse,
     PhoneVerificationRequest,
     ProfileCreate,
     ProfileListResponse,
     ProfileRead,
     ProfileUpdate,
+    UpdateProfileResponse,
     UserData,
     VerifyCodeRequest,
 )
@@ -20,35 +19,34 @@ from profiles_app.src.services.profiles_service import (
     ProfilesService,
     get_profiles_service,
 )
+from profiles_app.src.core.logger import logstash_handler
 
-logging_config.dictConfig(LOGGING)
-logger = logging.getLogger("profiles_service")
-
+logger = logstash_handler()
 router = APIRouter()
 
 
 @router.get(
     "/my",
-    response_model=None,
+    response_model=ProfileRead,
     summary="Получение собственного профиля",
     description="API получения собственного профиля по ID",
 )
 async def get_my_profile(
     request: Request,
     profiles_service: ProfilesService = Depends(get_profiles_service),
-) -> None:
+) -> ProfileRead:
     token_data = request.state.token_data
     request_user_data = token_data.get("user_data")
     user_data = UserData.model_validate(request_user_data)
 
     profile = await profiles_service.get_my_profile(user_data)
-
+    logger.info(f"Profile {profile.first_name} {profile.last_name} received")
     return profile
 
 
 @router.post(
     "",
-    response_model=dict,
+    response_model=CreateProfileResponse,
     status_code=HTTPStatus.CREATED,
     summary="Создание профиля пользователя",
     description="API Создания профиля пользователя.",
@@ -67,7 +65,7 @@ async def create_profile(
         ),
     ],
     profiles_service: ProfilesService = Depends(get_profiles_service),
-) -> dict:
+) -> CreateProfileResponse:
     profile = await profiles_service.create_profile(profile_create)
     return {
         "message": f"Profile user {profile.first_name} {profile.last_name} "
@@ -93,7 +91,7 @@ async def get_profile(
 
 @router.patch(
     "/{profile_id}",
-    response_model=dict,
+    response_model=UpdateProfileResponse,
     summary="Обновление профиля",
     description="API обновления профиля",
 )
@@ -111,7 +109,7 @@ async def update_profile(
         ),
     ],
     profiles_service: ProfilesService = Depends(get_profiles_service),
-) -> dict:
+) -> UpdateProfileResponse:
     token_data = request.state.token_data
     request_user_id = token_data.get("user_data").get("user_id")
 
@@ -134,13 +132,8 @@ async def delete_profile(
     await profiles_service.delete_profile(profile_id)
     return {"message": "Profile deleted successfully"}
 
-
-# Апофеоз моей тупости и торопливости.
-# Я взялся за разработку упустив тот факт что частное лицо
-# в России не может отправлять смс через сервис sms.ru
-
-# Но тем не менее код написан,
-# запрос на sms.ru проходит корректно.
+# Эмуляция отправления SMS для верификации моб.телефона профиля.
+# т.к. на территории России частное лицо не может отправлять смс сервисом
 # так что заглушкой выступает прямой возврат кода в ответе ручки.
 
 # ниже ответ от sms.ru
@@ -193,12 +186,12 @@ async def verify_phone(
     ),
 )
 async def list_profiles(
-    page_number: int = Query(
-        default=1, ge=1, description="Page number for pagination"
-    ),
-    page_size: int = Query(
-        default=10, ge=1, description="Number of likes per page"
-    ),
+    page_number: Annotated[
+        int, Query(description='Номер страницы', ge=1)
+    ] = 1,
+    page_size: Annotated[
+        int, Query(description='Элементов на странице', ge=1)
+    ] = 10,
     first_name: str | None = Query(
         default=None, description="first_name to filter profiles."
     ),

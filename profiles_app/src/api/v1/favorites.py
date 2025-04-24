@@ -2,7 +2,7 @@ from http import HTTPStatus
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Request
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
 from sqlalchemy.exc import IntegrityError
 
 from profiles_app.src.schemas.entity import (
@@ -129,9 +129,13 @@ async def delete_favorite(
 async def list_favorites(
     profile_id: UUID | None = None,
     movie_id: UUID | None = None,
-    page_number: int = 1,
-    page_size: int = 10,
-    order: str = "desc",
+    page_number: Annotated[int, Query(description='Номер страницы', ge=1)] = 1,
+    page_size: Annotated[int, Query(description='Размер страницы', ge=1)] = 10,
+    order: Annotated[
+        str,
+        Query(description="Сортировка: 'asc' или 'desc'",
+              enum=["asc", "desc"])
+    ] = "desc",
     favorites_service: FavoritesService = Depends(get_favorites_service),
 ) -> FavoriteListResponse:
     try:

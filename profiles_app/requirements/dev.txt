@@ -32,10 +32,10 @@ orjson==3.10.7
 # opentelemetry-instrumentation-fastapi==0.49b2  # jaeger
 # opentelemetry-exporter-jaeger==1.21.0  # jaeger
 
-# fastapi-limiter==0.1.6  # ограничение кол-ва запросов api
-# python-logstash==0.4.8 # logstash
+fastapi-limiter==0.1.6  # ограничение кол-ва запросов api
+python-logstash==0.4.8 # logstash
 
-# hawk-python-sdk==3.5.2 # logs
+hawk-python-sdk==3.5.2 # logs
 
 gunicorn==20.1.0
 uvicorn[standard]~=0.22

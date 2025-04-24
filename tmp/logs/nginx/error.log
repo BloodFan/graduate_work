@@ -1,0 +1,2 @@
+2025/04/23 06:45:30 [error] 15#15: *1 connect() failed (111: Connection refused) while connecting to upstream, client: 172.18.0.12, server: _, request: "POST /api/v1/auth/login HTTP/1.1", upstream: "http://172.18.0.11:9000/api/v1/auth/login", host: "auth_app"
+2025/04/23 06:52:44 [error] 16#16: *1 connect() failed (111: Connection refused) while connecting to upstream, client: 172.18.0.12, server: _, request: "POST /api/v1/auth/login HTTP/1.1", upstream: "http://172.18.0.10:9000/api/v1/auth/login", host: "auth_app"

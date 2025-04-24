@@ -60,7 +60,6 @@ def create_profile_task(user_data: dict):
                 )
 
     except Exception as e:
-        print(e)
         logger.error(f"Ошибка создания профиля: {e}")
 
     run_async(_create_profile())

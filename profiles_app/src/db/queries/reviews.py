@@ -105,14 +105,14 @@ class ReviewQueryService(BaseQueryService):
         query = query.offset(offset).limit(page_size)
 
         result = await self.session.execute(query)
-        reviews = result.scalars().all()
+        reviews: list[Review] = result.scalars().all()
 
         count_query = select(func.count()).select_from(Review)
         if filters:
             count_query = count_query.where(or_(*filters))
         total = await self.session.scalar(count_query)
 
-        average_rating = None
+        average_rating: float | None = None
         if movie_id is not None:
             avg_query = select(func.avg(Review.rating))
             if filters:

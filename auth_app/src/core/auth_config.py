@@ -6,8 +6,11 @@ from hawk_python_sdk.errors import InvalidHawkToken, ModuleError  # type: ignore
 from pydantic import BaseModel
 
 from auth_app.src.hawk import hawk
+from auth_app.src.core.logger import logstash_handler
 
 from .config import app_config
+
+logger = logstash_handler()
 
 
 class Settings(BaseModel):
@@ -36,7 +39,7 @@ async def authjwt_exception_handler(request: Request, exc: AuthJWTException):
                 },
             )
         except (InvalidHawkToken, ModuleError) as hawk_error:
-            print(f"Ошибка при отправке в Hawk: {hawk_error}")
+            logger.error(f"Ошибка при отправке в Hawk: {hawk_error}")
     return ORJSONResponse(
         status_code=exc.status_code, content={"detail": exc.message}
     )

@@ -1,4 +1,5 @@
-from typing import Any
+from types import TracebackType
+from typing import Any, Type
 
 import aiohttp
 
@@ -6,7 +7,12 @@ from profiles_app.src.services.token_manager import TokenManager
 
 
 class HTTPException(Exception):
-    def __init__(self, status_code, detail, response_text=None):
+    def __init__(
+        self,
+        status_code: int | None,
+        detail: str,
+        response_text: str | None = None
+    ) -> None:
         super().__init__(f"HTTP error {status_code}: {detail}")
         self.status_code = status_code
         self.detail = detail
@@ -25,7 +31,12 @@ class APIClient:
         self.session = aiohttp.ClientSession()
         return self
 
-    async def __aexit__(self, exc_type, exc, tb):
+    async def __aexit__(
+        self,
+        exc_type: Type[BaseException] | None,  # Тип исключения, если есть.
+        exc: BaseException | None,            # Сам объект исключения.
+        tb: TracebackType | None,             # Трассировка стека.
+    ) -> bool | None:                         # Возвращает `None` или `bool`.
         if self.session:
             await self.session.close()
 

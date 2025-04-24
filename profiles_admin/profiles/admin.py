@@ -1,3 +1,4 @@
+import logging
 from asgiref.sync import async_to_sync
 from django.conf import settings
 from django.contrib import admin
@@ -6,6 +7,8 @@ from django.core.cache import cache
 from .forms import ProfileAdminForm
 from .models import Profile
 from .services import APIClient, TokenManager
+
+logger = logging.getLogger(__name__)
 
 
 @admin.register(Profile)
@@ -61,7 +64,7 @@ class ProfileAdmin(admin.ModelAdmin):
                 if email != "Не найден":
                     cache.set(email_cache_key, email, timeout=60 * 5)
             except Exception as e:
-                print(f"Ошибка получения email: {e}")
+                logger.error(f"Ошибка получения email: {e}")
                 email = "Ошибка запроса"
 
         return email
@@ -71,12 +74,10 @@ class ProfileAdmin(admin.ModelAdmin):
     async def fetch_user_emails(
         self,
         user_ids: list,
-        batch_size: int | None = None,
-        endpoint: str | None = None,
+        batch_size: int | None = settings.BATCH_SIZE,
+        endpoint: str | None = settings.USERS_BULK,
     ):
         """Запрос для получения данных пользователей."""
-        batch_size = batch_size or settings.BATCH_SIZE
-        endpoint = endpoint or settings.USERS_BULK
         result = {}
         token_manager = TokenManager()
 
@@ -99,7 +100,7 @@ class ProfileAdmin(admin.ModelAdmin):
                                 batch_result[user_id] = "Не найден"
                         result.update(batch_result)
                 except Exception as e:
-                    print(f"Ошибка в батче {i // batch_size}: {e}")
+                    logger.error(f"Ошибка в батче {i // batch_size}: {e}")
                     batch_result = {
                         user_id: "Ошибка запроса" for user_id in batch
                     }

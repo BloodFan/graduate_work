@@ -7,6 +7,6 @@ class BaseQueryService:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def get_by_id(self, obj_id: int):
+    async def get_by_id(self, obj_id: int) -> None:
         """Получение объекта по id. Переопределен в наследниках."""
         pass

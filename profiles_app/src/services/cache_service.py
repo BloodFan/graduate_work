@@ -70,7 +70,7 @@ class RedisCacheService(CacheService):
     """
 
     def __init__(self) -> None:
-        self.conn: Redis = None  # type: ignore
+        self.conn: Redis | None = None  # type: ignore
 
     async def init_connection(self) -> None:
         self.conn = await self.get_redis()
@@ -90,7 +90,7 @@ class RedisCacheService(CacheService):
     )
     async def get_redis(self) -> Redis:
         """Соеденение с Redis"""
-        conn = Redis(unix_socket_path=redis_data.unix_socket_path, db=1)
+        conn: Redis = Redis(unix_socket_path=redis_data.unix_socket_path, db=1)
         return conn
 
     async def put_to_cache(

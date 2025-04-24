@@ -75,7 +75,7 @@ LOGGING = {
             "formatter": "verbose",
             "filters": ["request_id", "global_tag"],
         },
-        "logstash": {
+        "logstash": {  # не работатает т.к. не обьявлен в "handlers": ["console", "file"]
             "class": "logstash.LogstashHandler",
             "host": logstash_data.host,
             "port": logstash_data.port,

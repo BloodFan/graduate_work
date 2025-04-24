@@ -2,7 +2,7 @@ import logging
 from contextvars import ContextVar
 from logging import config as logging_config
 
-# from profiles_app.src.core.config import logstash_data
+from profiles_app.src.core.config import logstash_data
 
 _request_id_ctx_var: ContextVar[str] = ContextVar("X-Request-Id", default="")
 
@@ -12,7 +12,7 @@ def get_request_id() -> str:
     return _request_id_ctx_var.get()
 
 
-def set_request_id(request_id: str):
+def set_request_id(request_id: str) -> None:
     """Установка X-Request-Id в контекст."""
     _request_id_ctx_var.set(request_id)
 
@@ -27,7 +27,7 @@ LOG_DEFAULT_HANDLERS = [
 class RequestIdFilter(logging.Filter):
     """Фильтр для добавления X-Request-Id в запись лога."""
 
-    def filter(self, record):
+    def filter(self, record: logging.LogRecord) -> bool:
         record.request_id = get_request_id()
         return True
 
@@ -35,7 +35,7 @@ class RequestIdFilter(logging.Filter):
 class AppTagFilter(logging.Filter):
     """Фильтр для добавления тега profiles_app в запись лога."""
 
-    def filter(self, record):
+    def filter(self, record: logging.LogRecord) -> bool:
         record.tags = ["profiles_app"]
         return True
 
@@ -75,14 +75,14 @@ LOGGING = {
             "formatter": "verbose",
             "filters": ["request_id", "global_tag"],
         },
-        # "logstash": {
-        #     "class": "logstash.LogstashHandler",
-        #     "host": logstash_data.host,
-        #     "port": logstash_data.port,
-        #     "version": logstash_data.version,
-        #     "filters": ["global_tag"],
-        #     "level": "DEBUG",
-        # },
+        "logstash": {
+            "class": "logstash.LogstashHandler",
+            "host": logstash_data.host,
+            "port": logstash_data.port,
+            "version": logstash_data.version,
+            "filters": ["global_tag"],
+            "level": "DEBUG",
+        },
         "file": {
             "level": "DEBUG",
             "class": "logging.FileHandler",
@@ -111,7 +111,7 @@ LOGGING = {
 }
 
 
-def logstash_handler():
+def logstash_handler() -> logging.Logger:
     logging_config.dictConfig(LOGGING)
     logger = logging.getLogger("profiles_api")
     # logger.addHandler(

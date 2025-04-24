@@ -162,3 +162,12 @@ class ReviewListResponse(BaseListResponse):
     reviews: list[ReviewListView] = Field(
         ..., description="Список отзывов на текущей странице"
     )
+
+
+class CreateProfileResponse(BaseModel):
+    message: str
+    data: ProfileRead
+
+
+class UpdateProfileResponse(CreateProfileResponse):
+    pass

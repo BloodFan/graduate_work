@@ -1,10 +1,10 @@
 import json
 import logging
-import os
 
 import requests
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import BaseBackend
+from django.conf import settings
 
 User = get_user_model()
 logging.basicConfig(
@@ -14,7 +14,7 @@ logging.basicConfig(
 
 class CustomBackend(BaseBackend):
     def authenticate(self, request, username=None, password=None):
-        auth_url = os.getenv("AUTH_URL", "http://auth_app:80/")
+        auth_url = settings.AUTH_URL
         url = auth_url + "api/v1/auth/login"
         payload = {"login": username, "password": password}
         response = requests.post(url, data=json.dumps(payload))

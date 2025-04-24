@@ -14,6 +14,7 @@ from profiles_app.src.db.sessions import get_session
 from profiles_app.src.schemas.entity import (
     PhoneVerificationRequest,
     ProfileCreate,
+    ProfileListResponse,
     ProfileRead,
     ProfileUpdate,
     UserData,
@@ -78,7 +79,7 @@ class ProfilesService:
                 detail="Failed to create profile.",
             )
 
-    async def get_profile(self, profile_id: UUID) -> Profile:
+    async def get_profile(self, profile_id: UUID) -> ProfileRead:
         """Получение профиля по ID."""
         profile = await self.query.get_by_id(profile_id)
         if not profile:
@@ -96,7 +97,7 @@ class ProfilesService:
         page_number: int,
         page_size: int,
         order: str,
-    ) -> dict:
+    ) -> ProfileListResponse:
         return await self.query.get_list(
             page_number=page_number,
             page_size=page_size,
@@ -131,7 +132,6 @@ class ProfilesService:
                 profile_id=profile_id, **update_data.model_dump()
             )
             logger.info(f"Profile {profile_id} updated")
-            print(updated_profile)
             return ProfileRead.model_validate(updated_profile)
         except Exception as exc:
             logger.exception(f"Update failed: {exc}")
@@ -221,7 +221,7 @@ class ProfilesService:
             logger.error(f"Ошибка подтверждения номера: {e}")
             return {"message": f"Ошибка подтверждения номера: {e}"}
 
-    async def get_my_profile(self, user_data: UserData) -> Profile:
+    async def get_my_profile(self, user_data: UserData) -> ProfileRead:
         """Получение собственного профиля по ID."""
 
         profile = await self.query.get_by_user_id(user_data.user_id)

@@ -19,6 +19,7 @@ class AppConfig(BaseSettings):
     auth_url: str = Field(default="http://auth_app:80/")
     content_url: str = Field(default="http://content_app:60/")
     service_token_max_age: int = 30 * 24 * 60 * 60  # 30 дней в секундах
+    enable_hawk: bool = Field(default=True)
     encryption_key: str = Field(
         default="mFb4xclONMT0TTIcuAmTQpVNh4ibHyvhSpmHUK-vJrI="
     )
@@ -77,21 +78,21 @@ class PsqlData(BaseSettings):
     max_size: int = Field(default=10)
 
     @property
-    def get_dsn(self):
+    def get_dsn(self) -> str:
         return (
             f"dbname={self.db} user={self.user} "
             f"password={self.password} host={self.host}"
         )
 
     @property
-    def get_dsn_for_sqlalchemy(self):
+    def get_dsn_for_sqlalchemy(self) -> str:
         return (
             f"postgresql+asyncpg://{self.user}:{self.password}"
             f"@/{self.db}?host={self.host}"
         )
 
     @property
-    def get_dsn_for_asyncpg(self):
+    def get_dsn_for_asyncpg(self) -> str:
         return (
             f"postgres://{self.user}:{self.password}"
             f"@/{self.db}?host={self.host}"
@@ -114,9 +115,25 @@ class LogstashConfig(BaseSettings):
     )
 
 
-logstash_data = LogstashConfig()
-psql_data = PsqlData()
-redis_data = RedisData()  # type: ignore
-rabbitmq_data = RabbitMQData()
-app_config = AppConfig()  # type: ignore
-contact_config = ContactConfig()
+class HawkConfig(BaseSettings):
+    token: str = Field(
+        default=(
+            "eyJpbnRlZ3JhdGlvbklkIjoiZmJlOGQ4NmMtZjk0My00YmQ5LTg3"
+            "MTUtMzM2NWMyMDEzMTMxIiwic2VjcmV0IjoiYWQ3ODVhYWItZjE5"
+            "Yy00OTc4LWE4ZTctOGEwM2ZkN2UzZTIzIn0="
+        )
+    )
+
+    model_config = ConfigDict(  # type: ignore
+        env_prefix="HAWK_",
+        envenv_file=".conn.env",
+    )
+
+
+hawk_data: HawkConfig = HawkConfig()
+logstash_data: LogstashConfig = LogstashConfig()
+psql_data: PsqlData = PsqlData()
+redis_data: RedisData = RedisData()  # явная типизация
+rabbitmq_data: RabbitMQData = RabbitMQData()
+app_config: AppConfig = AppConfig()
+contact_config: ContactConfig = ContactConfig()

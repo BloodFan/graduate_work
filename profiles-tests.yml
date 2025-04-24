@@ -1,0 +1,33 @@
+# docker-compose -f profiles.yml -f auth.yml -f profiles-tests.yml up --build
+services:
+  tests:
+    image: profiles-app-image
+    working_dir: /tests
+    environment:
+      - PYTHONPATH=/:/opt:/tests/functional:/opt/profiles_app/:/opt/profiles_app/src
+    entrypoint: >
+      sh -c "pip install -r functional/requirements.txt
+      && python3 functional/utils/wait_for_psql.py
+      && /home/ubuntu/.local/bin/pytest functional/src"
+    volumes:
+      - ./tests:/tests
+      - redis_socket:/redis_socket
+      - postgres_socket:/postgres_socket
+      - ./tmp/logs/profiles_app/:/var/log/profiles_app/
+    env_file:
+      - docker/dev/env/.conn.env
+      - docker/dev/env/.env
+      - docker/dev/env/.gunicorn.env
+      - docker/dev/env/.profiles.env
+      - docker/dev/env/.smtp.env
+    depends_on:
+      profiles_app:
+        condition: service_started
+      auth_app:
+        condition: service_started
+      auth_db:
+        condition: service_healthy
+      profiles_db:
+        condition: service_healthy
+    networks:
+      - union_network

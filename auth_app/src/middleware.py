@@ -5,8 +5,12 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
 from auth_app.src.core.logger import set_request_id
+from auth_app.src.core.logger import logstash_handler
+
 
 from .hawk import hawk
+
+logger = logstash_handler()
 
 
 async def before_request(request: Request, call_next):
@@ -36,8 +40,7 @@ class HawkMiddleware(BaseHTTPMiddleware):
                 try:
                     hawk.send(event=exc, context={"path": str(request.url)})
                 except (InvalidHawkToken, ModuleError) as hawk_error:
-                    print(f"Ошибка отправки в Hawk: {hawk_error}")
-
+                    logger.error(f"Ошибка отправки в Hawk: {hawk_error}")
             error_response = {"detail": str(exc)}
             return JSONResponse(
                 status_code=500,

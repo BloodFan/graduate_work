@@ -2,7 +2,7 @@ from http import HTTPStatus
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Request
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
 from sqlalchemy.exc import IntegrityError
 
 from profiles_app.src.schemas.entity import (
@@ -122,9 +122,17 @@ async def delete_review(
 async def list_reviews(
     profile_id: UUID | None = None,
     movie_id: UUID | None = None,
-    page_number: int = 1,
-    page_size: int = 10,
-    order: str = "desc",
+    page_number: Annotated[
+        int, Query(description='Номер страницы', ge=1)
+    ] = 1,
+    page_size: Annotated[
+        int, Query(description='Размер страницы', ge=1)
+    ] = 10,
+    order: Annotated[
+        str,
+        Query(description="Сортировка: 'asc' или 'desc'",
+              enum=["asc", "desc"])
+    ] = "desc",
     review_service: ReviewService = Depends(get_reviews_service),
 ) -> ReviewListResponse:
     try:

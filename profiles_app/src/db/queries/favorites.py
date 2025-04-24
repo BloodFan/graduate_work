@@ -115,7 +115,7 @@ class FavoriteQueryService(BaseQueryService):
         query = query.offset(offset).limit(page_size)
 
         result = await self.session.execute(query)
-        favorites = result.scalars().all()
+        favorites: list[Favorite] = result.scalars().all()
 
         count_query = select(func.count()).select_from(Favorite)
         if filters:
